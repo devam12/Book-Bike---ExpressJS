@@ -21,7 +21,6 @@ var upload = multer({
 
 
 //Router
-
 //indexPage
 router.get('/', async (req, res) => {
     res.sendFile(path.join(__dirname,'../views/index.html'))
@@ -50,4 +49,6 @@ router.post('/addbike',upload.single('bImage'), async (req, res) => {
     }
 })
 
+
+//Exports adminRouter
 module.exports = router;
