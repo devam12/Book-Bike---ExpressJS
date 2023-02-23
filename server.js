@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser');
 const adminRoutes = require('./routes/adminRoutes')
 const path = require('path')
+const cors = require("cors");
 var fs = require('fs');
 const bike = require('./models/bike');
 const app = express()
@@ -16,10 +17,7 @@ app.use(express.static(path.join(__dirname,"static")))
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
-
-
-// set the view engine to ejs
-app.set('view engine', 'ejs')
+app.use(cors());
 
 
 //Database Connection 
