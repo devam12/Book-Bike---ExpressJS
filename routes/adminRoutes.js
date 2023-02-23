@@ -26,9 +26,8 @@ router.get('/', async (req, res) => {
     res.sendFile(path.join(__dirname,'../views/index.html'))
 })
 
-
 //addBikeModel
-router.post('/addbike',upload.single('bImage'), async (req, res) => {
+router.post('/bike',upload.single('bImage'), async (req, res) => {
     const bikeObj = new BikeModel({
         name : req.body.bName,
         average : req.body.bAverage,
@@ -47,6 +46,17 @@ router.post('/addbike',upload.single('bImage'), async (req, res) => {
     catch (error) {
         res.status(400).json({message: error.message})
     }
+})
+
+//getAllBike
+router.get('/bike', async (req, res) => {
+    try {
+        const bike = await BikeModel.find();   
+        res.send(package);
+    }
+    catch (error) {
+        res.status(400).json({message: error.message})
+    }  
 })
 
 

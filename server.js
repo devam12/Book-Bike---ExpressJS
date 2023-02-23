@@ -16,7 +16,10 @@ app.use(express.static(path.join(__dirname,"static")))
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
-app.set("view engine", "ejs");
+
+
+// set the view engine to ejs
+app.set('view engine', 'ejs')
 
 
 //Database Connection 
@@ -37,6 +40,6 @@ app.use('/admin',adminRoutes)
 
 //Start Application
 app.listen(port, () => {
-  console.log(`Example app listening on port http://localhost:${port}`)
+  console.log(`Example app listening on port http://localhost:${port}/admin/`)
 })
 
