@@ -3,6 +3,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser');
 const adminRoutes = require('./routes/adminRoutes')
+const fileUpload = require('express-fileupload');
 const path = require('path')
 const cors = require("cors");
 var fs = require('fs');
@@ -17,6 +18,7 @@ app.use(express.static(path.join(__dirname,"static")))
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(fileUpload());
 app.use(cors());
 
 
@@ -41,3 +43,4 @@ app.listen(port, () => {
   console.log(`Example app listening on port http://localhost:${port}/admin/`)
 })
 
+module.exports = app;

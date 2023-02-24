@@ -17,7 +17,7 @@ const bikeSchema = new mongoose.Schema({
         type: Boolean,
     },
     image:{
-        data: Buffer,
+        data: String,
         contentType: String
     },
     bPurchaseDate:{

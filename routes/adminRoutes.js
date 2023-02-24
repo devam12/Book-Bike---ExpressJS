@@ -1,23 +1,11 @@
 const express = require('express')
 const mongoose = require('mongoose')
-const multer = require("multer");
-const uploadDestination = multer({ dest: '/../uploads/' })
+const app = require('../server')
+const fileUpload = require('express-fileupload');
 const fs = require('fs')
 const path = require('path')
 const router = express.Router()
 const BikeModel = require('../models/bike');
-
-
-//Define photo storage
-var storage = multer.diskStorage({
-    destination: 'uploads',
-    filename: (req, file, cb) => {
-        cb(null, file.originalname + '-' + Date.now())
-    },
-})
-var upload = multer({
-    storage: storage
-})
 
 
 //Router
@@ -27,19 +15,21 @@ router.get('/', async (req, res) => {
 })
 
 //addBikeModel
-router.post('/bike', upload.single('bImage'), async (req, res) => {
-    console.log(req.body);
+router.post('/bike', async (req, res) => {
+    let image  = req.files;
+    image.bImage.mv(__dirname+'/../uploads/'+image.bImage.name);
+
     const bikeObj = new BikeModel({
         name: req.body.bName,
         average: req.body.bAverage,
         chargeperday: req.body.bRentalCharge,
         bikenumber: req.body.bNumber,
         status: true,
-        bPurchaseDate: req.body.purchaseDate.toString(),
+        bPurchaseDate: req.body.bPurchaseDate,
         bRentStatus: "Available",
         image: {
-            data: fs.readFileSync(path.join(__dirname + '/../uploads/' + req.file.filename))    ,
-            contentType: 'image/'
+            data: '/uploads/'+image.bImage.name,
+            contentType: 'image/png'
         }
     })
     try {
@@ -50,6 +40,7 @@ router.post('/bike', upload.single('bImage'), async (req, res) => {
         res.status(400).json({ message: error.message })
     }
 })
+
 
 //getAllBike
 router.get('/bike', async (req, res) => {
@@ -62,8 +53,19 @@ router.get('/bike', async (req, res) => {
     }
 })
 
+//getBikeById
+router.get('/bike/:id', async (req, res) => {
+    try {
+        const bike = await BikeModel.findById(req.params.id)
+        res.send(bike);
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
 
-//getAllBike
+
+//getPerPageBike
 router.get('/getPageBikes/:page', async (req, res) => {
     try {
         const page = req.params.page;
@@ -77,6 +79,7 @@ router.get('/getPageBikes/:page', async (req, res) => {
     }
 })
 
+//ChangeStatus 
 router.post('/changeStatus', async (req, res) => {
     try {
         const bike =  await BikeModel.findById(req.body.id)
