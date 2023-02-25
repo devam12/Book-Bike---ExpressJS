@@ -28,4 +28,4 @@ const bikeSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('bike', bikeSchema)
+module.exports = mongoose.model('Bike', bikeSchema)

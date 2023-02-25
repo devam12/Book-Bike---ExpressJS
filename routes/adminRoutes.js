@@ -9,10 +9,6 @@ const BikeModel = require('../models/bike');
 
 
 //Router
-//indexPage
-router.get('/', async (req, res) => {
-    res.sendFile(path.join(__dirname, '../views/index.html'))
-})
 
 //addBikeModel
 router.post('/bike', async (req, res) => {

@@ -3,23 +3,33 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser');
 const adminRoutes = require('./routes/adminRoutes')
+const userRoutes = require('./routes/userRoutes')
 const fileUpload = require('express-fileupload');
 const path = require('path')
 const cors = require("cors");
 var fs = require('fs');
 const bike = require('./models/bike');
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 require('dotenv').config();
 
 
 //Middelware
-app.use(express.static(path.join(__dirname,"static")))
+app.use(express.static(path.join(__dirname,"/views")))  //Automatic fatch index page using express.static()
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(fileUpload());
 app.use(cors());
+
+//Routes
+app.use('/admin',adminRoutes)
+app.use('/user',userRoutes)
+
+
+app.get('/', async (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/index.html'))
+})
 
 
 //Database Connection 
@@ -34,8 +44,7 @@ database.once('connected', () => {
 })
 
 
-//Routes
-app.use('/admin',adminRoutes)
+
 
 
 //Start Application
