@@ -15,13 +15,14 @@ router.post('/bike', async (req, res) => {
     let image  = req.files;
     image.bImage.mv(__dirname+'/../uploads/'+image.bImage.name);
 
+    console.log(req.body);
     const bikeObj = new BikeModel({
         name: req.body.bName,
         average: req.body.bAverage,
         chargeperday: req.body.bRentalCharge,
         bikenumber: req.body.bNumber,
         status: true,
-        bPurchaseDate: req.body.bPurchaseDate,
+        bPurchaseDate: req.body.purchaseDate,
         bRentStatus: "Available",
         image: {
             data: '/uploads/'+image.bImage.name,
@@ -30,7 +31,7 @@ router.post('/bike', async (req, res) => {
     })
     try {
         const bikesave = await bikeObj.save();
-        res.send(bikesave);
+        // res.send(bikesave);
     }
     catch (error) {
         res.status(400).json({ message: error.message })
@@ -49,11 +50,36 @@ router.get('/bike', async (req, res) => {
     }
 })
 
+
+//image getting path
+// router.get('/uploads:name', async (req, res) => {
+//     try {
+//         const imagepath = path.join(__dirname,"/../uploads/",req.params.name)
+//         res.send(imagepath).json();
+//     }
+//     catch (error) {
+//         res.status(400).json({ message: error.message })
+//     }
+// })
+
+
+
+// Delete All Bike 
+router.delete('/bike', async (req, res) => {
+    try {
+        const bike = await BikeModel.remove();
+        res.send(bike);
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
 //getBikeById
 router.get('/bike/:id', async (req, res) => {
     try {
         const bike = await BikeModel.findById(req.params.id)
-        res.send(bike);
+        res.send(bike).json();
     }
     catch (error) {
         res.status(400).json({ message: error.message })
@@ -64,7 +90,7 @@ router.get('/bike/:id', async (req, res) => {
 //getPerPageBike
 router.get('/getPageBikes/:page', async (req, res) => {
     try {
-        const page = req.params.page;
+        const page = Number(req.params.page);
         let limit = 2;
         let skip = (page - 1) * limit;
         const bike = await BikeModel.find().skip(skip).limit(limit);
@@ -88,9 +114,7 @@ router.post('/changeStatus', async (req, res) => {
                 changeStatus = { status: true }
             }
             const updateStatusBike = await BikeModel.updateOne(bike, changeStatus)
-            console.log(updateStatusBike);
-            console.log(bike);
-            res.send(updateStatusBike);
+            // res.send(updateStatusBike);
         }
         else{
             res.send("Empty-------------")

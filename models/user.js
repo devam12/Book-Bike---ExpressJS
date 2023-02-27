@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const userSchema = new mongoose.Schema({
     fullName: {
@@ -7,8 +9,13 @@ const userSchema = new mongoose.Schema({
     mobileNumber: {
         type: Number,
     },
+    noOfBookings:{
+        type:Number,
+    },
     email: {
         type: String,
+        unique : true,
+        required:true,
     },
     gender: {
         type: String,
@@ -18,6 +25,7 @@ const userSchema = new mongoose.Schema({
     },
     lincenceNumber :{
         type: String,
+        required:true,
     },
     image:{
         data: String,
@@ -25,6 +33,7 @@ const userSchema = new mongoose.Schema({
     },
     password:{
         type : String,
+        required:true,
     },
     confirmPassword:{
         type : String,
@@ -32,8 +41,13 @@ const userSchema = new mongoose.Schema({
 })
 
 
-userSchema.pre("save", async function(){
-    
-} )
+//Generate Hash code 
+userSchema.pre("save", async function(next){
+    if(this.isModified("password")){
+        this.password = await bcrypt.hash(this.password, saltRounds);   
+        this.confirmPassword = undefined;    
+    }
+    next();
+})
 
 module.exports = mongoose.model('User', userSchema)
