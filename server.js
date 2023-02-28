@@ -54,18 +54,21 @@ app.use('/user',userRoutes)
 var sessionChecker = (req, res, next) => {
   if (req.session.user && req.cookies.usersid) {
       res.sendFile(path.join(__dirname,"/views/dashboard.html"))
+      // res.send(req.session.user);
   } else {
     next();
   }
 };
 
 
-app.get('/login', sessionChecker,async (req, res) => {
-  res.sendFile(path.join(__dirname,"/views/login.html"))
+app.get('/login', sessionChecker,async (req, resgugu) => {
+  // res.sendFile(path.join(__dirname,"/views/login.html"))
+
 })
 
 app.get('/', sessionChecker,async (req, res) => {
-  res.sendFile(path.join(__dirname,"/views/login.html"))
+  // res.sendFile(path.join(__dirname,"/views/login.html"))
+  res.redirect("/login");
 })
 
 app.get('/logout', async (req, res) => {
@@ -78,7 +81,8 @@ app.get('/logout', async (req, res) => {
 })
 
 app.get('/dashboard',sessionChecker, async (req, res) => {
-  res.sendFile(path.join(__dirname,"/views/login.html"))
+  // res.sendFile(path.join(__dirname,"/views/login.html"))
+  res.redirect("/login");
 })
 
 app.get('/signup',sessionChecker, async (req, res) => {
@@ -95,9 +99,12 @@ app.post('/login', async (req, res) => {
       console.log(user);
       const isMatch = await bcrypt.compare(req.body.password , user.password)  
       if(isMatch){
+        
           req.session.user = user;
+          // res.status(200).send(user).json();
           console.log("login successfull");
           res.redirect("/dashboard")
+          // res.redirect("https://192.168.29.56/index.html");
       }
       else{
         // res.redirect("/login");
@@ -128,9 +135,6 @@ app.use(function(e, req, res, next) {
       res.status(400).json({error: {msg: e.message, stack: e.stack}});
   }
 });
-
-
-
 
 
 //Start Application

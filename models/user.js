@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     status:{
         type: Boolean,
     },
-    lincenceNumber :{
+    licenceNumber :{
         type: String,
         required:true,
     },

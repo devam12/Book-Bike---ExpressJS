@@ -21,7 +21,7 @@ router.post('/register', async (req, res) => {
             gender: req.body.gender,
             status: true,
             noOfBookings : 0,
-            lincenceNumber: req.body.lincenceNumber,
+            licenceNumber: req.body.licenceNumber,
             password: req.body.password,
             confirmPassword: req.body.confirmPassword,
             image: {
