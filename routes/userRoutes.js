@@ -8,17 +8,14 @@ const router = express.Router()
 
 router.post('/register', async (req, res) => {
     try {
-        if(req.body.password!=req.body.confirmPassword){
-            return res.send("Not match password");
-        }
         let image  = req.files.userImage;
         image.mv(__dirname+'/../uploads/'+image.name);
+        console.log(req.body);
   
         const userObj = new UserModel({
             fullName: req.body.fullName,
             mobileNumber: req.body.mobileNumber,
             email: req.body.email,
-            gender: req.body.gender,
             status: true,
             noOfBookings : 0,
             licenceNumber: req.body.licenceNumber,
@@ -29,10 +26,10 @@ router.post('/register', async (req, res) => {
                 contentType: 'image/png'
             } 
         })
-        //Pre function hasingpassword() call before save()  
+        //Pre function hasingpassword() call before save() 
         const userSave = await userObj.save();
         req.session.user = userSave;
-        res.redirect("/dashboard")
+        res.send(userSave);         
     }
     catch (error) {
         res.status(400).json({ message: error.message });

@@ -40,8 +40,9 @@ router.post('/bike', async (req, res) => {
 
 
 //getAllBike
-router.get('/bike', async (req, res) => {
+router.get('/bike',async (req, res) => {
     try {
+        console.log(req.cookies);
         const bike = await BikeModel.find();
         res.send(bike);
     }
@@ -49,19 +50,6 @@ router.get('/bike', async (req, res) => {
         res.status(400).json({ message: error.message })
     }
 })
-
-
-//image getting path
-// router.get('/uploads:name', async (req, res) => {
-//     try {
-//         const imagepath = path.join(__dirname,"/../uploads/",req.params.name)
-//         res.send(imagepath).json();
-//     }
-//     catch (error) {
-//         res.status(400).json({ message: error.message })
-//     }
-// })
-
 
 
 // Delete All Bike 
@@ -74,6 +62,7 @@ router.delete('/bike', async (req, res) => {
         res.status(400).json({ message: error.message })
     }
 })
+
 
 //getBikeById
 router.get('/bike/:id', async (req, res) => {

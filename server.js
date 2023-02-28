@@ -42,17 +42,9 @@ app.use('/admin',adminRoutes)
 app.use('/user',userRoutes)
 
 
-
-// app.use((req,res,next)=>{
-//   if(req.session.user && req.cookies.usersid){
-//     res.redirect("/dashboard")
-//   }
-//   next();
-// })
-
 // middleware function to check for logged-in users
 var sessionChecker = (req, res, next) => {
-  if (req.session.user && req.cookies.usersid) {
+  if (req.session.user && req.cookie.usersid) {
       res.sendFile(path.join(__dirname,"/views/dashboard.html"))
       // res.send(req.session.user);
   } else {
@@ -61,23 +53,22 @@ var sessionChecker = (req, res, next) => {
 };
 
 
-app.get('/login', sessionChecker,async (req, resgugu) => {
-  // res.sendFile(path.join(__dirname,"/views/login.html"))
-
-})
-
-app.get('/', sessionChecker,async (req, res) => {
-  // res.sendFile(path.join(__dirname,"/views/login.html"))
-  res.redirect("/login");
-})
-
 app.get('/logout', async (req, res) => {
   res.clearCookie("usersid");
   if (req.session.user) {
     req.session.destroy
     console.log("logout successfull");
   }
-  res.redirect("/");
+  res.redirect("/login");
+})
+
+
+app.get('/login', sessionChecker, async (req, res) => {
+  res.sendFile(path.join(__dirname,"/views/login.html"));
+})
+
+app.get('/signup',sessionChecker, async (req, res) => {
+  res.sendFile(path.join(__dirname,"/views/signup.html"))
 })
 
 app.get('/dashboard',sessionChecker, async (req, res) => {
@@ -85,29 +76,22 @@ app.get('/dashboard',sessionChecker, async (req, res) => {
   res.redirect("/login");
 })
 
-app.get('/signup',sessionChecker, async (req, res) => {
-  res.sendFile(path.join(__dirname,"/views/signup.html"))
-})
-
 app.post('/login', async (req, res) => {
   try {
+      console.log(req.body);
       email = req.body.email;
       const user = await UserModel.findOne({email : email});
       if(!user){
-          res.status(400).send("Email Not Found");
+          return res.send("User Not Found");
       }
-      console.log(user);
       const isMatch = await bcrypt.compare(req.body.password , user.password)  
       if(isMatch){
         
           req.session.user = user;
-          // res.status(200).send(user).json();
+          res.send(user);                          
           console.log("login successfull");
-          res.redirect("/dashboard")
-          // res.redirect("https://192.168.29.56/index.html");
       }
       else{
-        // res.redirect("/login");
         res.send("Invalid password");
       }    
   }
@@ -143,3 +127,4 @@ app.listen(port, () => {
 })
 
 module.exports = app;
+module.exports = sessionChecker;

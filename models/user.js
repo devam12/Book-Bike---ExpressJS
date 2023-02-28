@@ -17,9 +17,6 @@ const userSchema = new mongoose.Schema({
         unique : true,
         required:true,
     },
-    gender: {
-        type: String,
-    },
     status:{
         type: Boolean,
     },
@@ -37,6 +34,9 @@ const userSchema = new mongoose.Schema({
     },
     confirmPassword:{
         type : String,
+    },
+    isAdmin:{
+        type: Boolean,
     }
 })
 
