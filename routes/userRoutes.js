@@ -3,9 +3,12 @@ const app = require('../server')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const UserModel = require('../models/user');
+// const sessionUser = require('../middelware/auth')
 const router = express.Router()
 
 
+//Router
+//Register User
 router.post('/register', async (req, res) => {
     try {
         let image  = req.files.userImage;
@@ -18,9 +21,11 @@ router.post('/register', async (req, res) => {
             email: req.body.email,
             status: true,
             noOfBookings : 0,
+            revenueOnUser : 0,
             licenceNumber: req.body.licenceNumber,
             password: req.body.password,
             confirmPassword: req.body.confirmPassword,
+            isAdmin : false,
             image: {
                 data: '/uploads/'+image.name,
                 contentType: 'image/png'
@@ -36,10 +41,56 @@ router.post('/register', async (req, res) => {
     }
 })
 
+
+//getAllUser
+router.get('/users',async (req, res) => {
+    try {
+        console.log(req.cookies);
+        const user = await UserModel.find();
+        res.send(user);
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+//getPerPageUser
+router.get('/getPageUsers/:page', async (req, res) => {
+    try {
+        const page = Number(req.params.page);
+        let limit = 2;
+        let skip = (page - 1) * limit;
+        const users = await UserModel.find().skip(skip).limit(limit);
+        res.send(users);
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+
+//ChangeStatus 
+router.post('/changeStatus', async (req, res) => {
+    try {
+        const user =  await UserModel.findById(req.body.id)
+        if(user!==null){
+            let changeStatus;
+            if(user.status==true){
+                changeStatus = { status: false }
+            }
+            else{
+                changeStatus = { status: true }
+            }
+            const updateStatusUser = await UserModel.updateOne(user, changeStatus)
+            res.send(user.status);
+        }
+        else{
+            res.send("Empty")
+        }
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
 module.exports = router;
-
-
-
-
-
-

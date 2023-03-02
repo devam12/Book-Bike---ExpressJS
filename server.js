@@ -6,15 +6,16 @@ const adminRoutes = require('./routes/adminRoutes')
 const userRoutes = require('./routes/userRoutes')
 const fileUpload = require('express-fileupload');
 const UserModel = require('./models/user');
-const bcrypt = require('bcrypt')
-var session = require('express-session')
-var cookieParser = require("cookie-parser");
-const path = require('path')
-const cors = require("cors");
-var fs = require('fs');
 const bike = require('./models/bike');
+const bcrypt = require('bcrypt')
+const path = require('path');
+const jwt = require('jsonwebtoken');
+const cors = require("cors");
+
+//Call Functions 
 const app = express()
 const port = process.env.PORT || 3000
+
 
 //Middelware
 app.use(express.static(path.join(__dirname,"/views")))  //Automatic fatch index page using express.static()
@@ -23,18 +24,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(fileUpload());
 app.use(cors());
-app.use(session({
-  key:'usersid',
-  secret: process.env.SESSION_CODE,
-  resave: false,
-  saveUninitialized: false,
-  cookie: 
-    { 
-      expires: 600000
-      // secure: true
-    }
-}))
-app.use(cookieParser());
 
 
 //Routes
@@ -42,65 +31,29 @@ app.use('/admin',adminRoutes)
 app.use('/user',userRoutes)
 
 
-// middleware function to check for logged-in users
-var sessionChecker = (req, res, next) => {
-  if (req.session.user && req.cookie.usersid) {
-      res.sendFile(path.join(__dirname,"/views/dashboard.html"))
-      // res.send(req.session.user);
-  } else {
-    next();
-  }
-};
-
-
-app.get('/logout', async (req, res) => {
-  res.clearCookie("usersid");
-  if (req.session.user) {
-    req.session.destroy
-    console.log("logout successfull");
-  }
-  res.redirect("/login");
-})
-
-
-app.get('/login', sessionChecker, async (req, res) => {
-  res.sendFile(path.join(__dirname,"/views/login.html"));
-})
-
-app.get('/signup',sessionChecker, async (req, res) => {
-  res.sendFile(path.join(__dirname,"/views/signup.html"))
-})
-
-app.get('/dashboard',sessionChecker, async (req, res) => {
-  // res.sendFile(path.join(__dirname,"/views/login.html"))
-  res.redirect("/login");
-})
-
+//Methods
 app.post('/login', async (req, res) => {
   try {
       console.log(req.body);
       email = req.body.email;
       const user = await UserModel.findOne({email : email});
       if(!user){
-          return res.send("User Not Found");
+          return res.status(401).send("User Not Found");
       }
       const isMatch = await bcrypt.compare(req.body.password , user.password)  
       if(isMatch){
-        
-          req.session.user = user;
-          res.send(user);                          
-          console.log("login successfull");
+        token = jwt.sign({user}, process.env.SESSION_CODE);
+        res.send({token : token}).json();
+        console.log("login successfull");
       }
       else{
-        res.send("Invalid password");
+        res.status(401).send({message : "Invalid password"});
       }    
   }
   catch (error) {
       res.status(400).json({ message: error.message });
   }
 })
-
-
 
 
 //Database Connection 
@@ -114,12 +67,6 @@ database.once('connected', () => {
     console.log('Database Connected');
 })
 
-app.use(function(e, req, res, next) {
-  if (e.message === "Bad request") {
-      res.status(400).json({error: {msg: e.message, stack: e.stack}});
-  }
-});
-
 
 //Start Application
 app.listen(port, () => {
@@ -127,4 +74,3 @@ app.listen(port, () => {
 })
 
 module.exports = app;
-module.exports = sessionChecker;

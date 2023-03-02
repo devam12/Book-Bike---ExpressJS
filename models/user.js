@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         unique : true,
+        lowercase : true,
         required:true,
     },
     status:{
@@ -32,8 +33,8 @@ const userSchema = new mongoose.Schema({
         type : String,
         required:true,
     },
-    confirmPassword:{
-        type : String,
+    revenueOnUser :{
+        type : Number,
     },
     isAdmin:{
         type: Boolean,

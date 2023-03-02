@@ -6,10 +6,11 @@ const fs = require('fs')
 const path = require('path')
 const router = express.Router()
 const BikeModel = require('../models/bike');
+const sessionUser = require('../middelware/auth')
+
 
 
 //Router
-
 //addBikeModel
 router.post('/bike', async (req, res) => {
     let image  = req.files;
@@ -22,6 +23,7 @@ router.post('/bike', async (req, res) => {
         chargeperday: req.body.bRentalCharge,
         bikenumber: req.body.bNumber,
         status: true,
+        revenueOnBike : 0,
         bPurchaseDate: req.body.purchaseDate,
         bRentStatus: "Available",
         image: {
@@ -42,7 +44,6 @@ router.post('/bike', async (req, res) => {
 //getAllBike
 router.get('/bike',async (req, res) => {
     try {
-        console.log(req.cookies);
         const bike = await BikeModel.find();
         res.send(bike);
     }
@@ -91,8 +92,9 @@ router.get('/getPageBikes/:page', async (req, res) => {
 })
 
 //ChangeStatus 
-router.post('/changeStatus', async (req, res) => {
+router.post('/changeStatus',sessionUser, async (req, res) => {
     try {
+        console.log(req.body);
         const bike =  await BikeModel.findById(req.body.id)
         if(bike!==null){
             let changeStatus;
@@ -103,10 +105,10 @@ router.post('/changeStatus', async (req, res) => {
                 changeStatus = { status: true }
             }
             const updateStatusBike = await BikeModel.updateOne(bike, changeStatus)
-            // res.send(updateStatusBike);
+            res.send(updateStatusBike);
         }
         else{
-            res.send("Empty-------------")
+            res.send("Not Found-------------")
         }
     }
     catch (error) {

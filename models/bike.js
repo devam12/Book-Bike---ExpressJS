@@ -20,6 +20,9 @@ const bikeSchema = new mongoose.Schema({
         data: String,
         contentType: String
     },
+    revenueOnBike :{
+        type : Number,
+    },
     bPurchaseDate:{
         type: Date,
     },
