@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt')
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const cors = require("cors");
+const {generateAccessToken} = require('./middelware/auth')
 
 //Call Functions 
 const app = express()
@@ -42,7 +43,9 @@ app.post('/login', async (req, res) => {
       }
       const isMatch = await bcrypt.compare(req.body.password , user.password)  
       if(isMatch){
-        token = jwt.sign({user}, process.env.SESSION_CODE);
+        // token = jwt.sign({user}, process.env.SESSION_CODE);
+        const token = await generateAccessToken(user);
+        console.log(token);
         res.send({token : token}).json();
         console.log("login successfull");
       }
@@ -58,7 +61,9 @@ app.post('/login', async (req, res) => {
 
 //Database Connection 
 const mongoString = process.env.DATABASE_URL
-mongoose.connect(mongoString);
+mongoose.connect(mongoString,{
+  useNewUrlParser : true,
+});
 const database = mongoose.connection
 database.on('error', (error) => {
     console.log(error)

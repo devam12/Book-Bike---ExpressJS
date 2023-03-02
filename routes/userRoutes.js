@@ -14,6 +14,12 @@ router.post('/register', async (req, res) => {
         let image  = req.files.userImage;
         image.mv(__dirname+'/../uploads/'+image.name);
         console.log(req.body);
+
+        email = req.body.email;
+        const user = await UserModel.findOne({email : email});
+        if(user){
+            return res.status(400).send("User Already Register Found");
+        }
   
         const userObj = new UserModel({
             fullName: req.body.fullName,

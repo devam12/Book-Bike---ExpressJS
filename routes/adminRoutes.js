@@ -6,9 +6,10 @@ const fs = require('fs')
 const path = require('path')
 const router = express.Router()
 const BikeModel = require('../models/bike');
-const sessionUser = require('../middelware/auth')
+// const {sessionUser,generateAccessToken} = require('../middelware/auth')
 
 
+const {verifyToken} = require('../middelware/auth')
 
 //Router
 //addBikeModel
@@ -92,7 +93,7 @@ router.get('/getPageBikes/:page', async (req, res) => {
 })
 
 //ChangeStatus 
-router.post('/changeStatus',sessionUser, async (req, res) => {
+router.post('/changeStatus',verifyToken, async (req, res) => {
     try {
         console.log(req.body);
         const bike =  await BikeModel.findById(req.body.id)
