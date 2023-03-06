@@ -19,6 +19,10 @@ const bookBikeSchema = new mongoose.Schema({
         type : Date,
         required:true,
     },
+    daysBooked : {
+        type : Number,
+        required:true,
+    },
     chargeperday : {
         type : Number,
     }

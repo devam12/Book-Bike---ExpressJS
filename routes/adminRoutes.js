@@ -6,12 +6,13 @@ const fs = require('fs')
 const path = require('path')
 const router = express.Router()
 const BikeModel = require('../models/bike');
+const BookBikeModel = require('../models/bookbike');
 const UserModel = require('../models/user');
 const {verifyAccessToken} = require('../middelware/auth')
 
 //Router
 //addBikeModel
-router.post('/bike', async (req, res) => {
+router.post('/bike', verifyAccessToken, async (req, res) => {
     let image  = req.files;
     image.bImage.mv(__dirname+'/../uploads/'+image.bImage.name);
 
@@ -41,7 +42,7 @@ router.post('/bike', async (req, res) => {
 
 
 //getAllBike
-router.get('/bike',async (req, res) => {
+router.get('/bike',verifyAccessToken,async (req, res) => {
     try {
         const bike = await BikeModel.find();
         res.send(bike);
@@ -53,7 +54,7 @@ router.get('/bike',async (req, res) => {
 
 
 // Delete All Bike 
-router.delete('/bike', async (req, res) => {
+router.delete('/bike',verifyAccessToken, async (req, res) => {
     try {
         const bike = await BikeModel.remove();
         res.send(bike);
@@ -65,7 +66,7 @@ router.delete('/bike', async (req, res) => {
 
 
 //getBikeById
-router.get('/bike/:id', async (req, res) => {
+router.get('/bike/:id',verifyAccessToken, async (req, res) => {
     try {
         const bike = await BikeModel.findById(req.params.id)
         res.send(bike).json();
@@ -77,13 +78,18 @@ router.get('/bike/:id', async (req, res) => {
 
 
 //getPerPageBike
-router.get('/getPageBikes/:page', async (req, res) => {
+router.get('/getPageBikes/:page',verifyAccessToken, async (req, res) => {
     try {
         const page = Number(req.params.page);
         let limit = 2;
         let skip = (page - 1) * limit;
         const bike = await BikeModel.find().skip(skip).limit(limit);
-        res.send(bike);
+        if(bike!==null){
+            res.send(bike);
+        }
+        else{
+            res.send("Empty")
+        }
     }
     catch (error) {
         res.status(400).json({ message: error.message })
@@ -140,8 +146,73 @@ router.post('/changeUserStatus',verifyAccessToken, async (req, res) => {
 })
 
 
+//Recent Booking
+router.get('/recentBooking',verifyAccessToken, async (req, res) => {
+    try {
+        const bookedbike =  await BookBikeModel.find({}).sort({_id:-1}).limit(5);
+        if(bookedbike!==null){
+            var results = await Promise.all(bookedbike.map(async (element, index) => {
+                let obj = {};
+                const user = await UserModel.findById(element.userId);
+                const bike = await BikeModel.findById(element.bikeId);
+                obj.fullName = user.fullName;
+                obj.bikeName = bike.name;
+                obj.daysBooked = element.daysBooked;
+                obj.chargeperday = element.chargeperday;
+                obj.revenueOnBike = element.daysBooked * element.chargeperday;
+                return obj;
+                // console.log(index,"",user.fullName,"  ",bike.name,"  ",element.daysBooked,"  ",element.chargeperday,"  ",element.daysBooked*element.chargeperday);
+            }));
+            res.send(results);
+        }
+        else{
+            res.send("Empty")
+        }
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
 
 
+//Total Booking
+router.get('/getTotalBooking',async (req, res) => {
+    try {
+        const getBooking = await BookBikeModel.estimatedDocumentCount();
+        res.send(String(getBooking));
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+
+//Total User
+router.get('/getTotalUser',async (req, res) => {
+    try {
+        const getUser = await UserModel.estimatedDocumentCount();
+        res.send(String(getUser));
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+
+//Total Revenue
+router.get('/getTotalRevenue',async (req, res) => {
+    try {
+        const getData = await BookBikeModel.find();
+        let totalRevenue = 0;
+        getData.forEach(element => {
+            totalRevenue+=element.chargeperday*element.daysBooked;
+        });
+        res.send(String(totalRevenue));
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
 
 //Exports adminRouter
 module.exports = router;

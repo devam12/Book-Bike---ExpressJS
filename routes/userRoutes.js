@@ -121,11 +121,13 @@ router.post('/bookBike',verifyAccessToken, async (req, res) => {
             bike.save();
             formdata = req.body.formData;
             formdataJsonObj = JSON.parse(formdata);
+            const days = new Date(formdataJsonObj.dropDate).getDate() - new Date(formdataJsonObj.pickupDate).getDate();
             const bookingObj = new BookBikeModel({
                 bikeId : bike.id,
                 userId : req.user.user._id,
                 pickupDate : formdataJsonObj.pickupDate,
                 dropDate :formdataJsonObj.dropDate,
+                daysBooked : days,
                 chargeperday : bike.chargeperday
             })
 
@@ -137,6 +139,10 @@ router.post('/bookBike',verifyAccessToken, async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 })
+
+
+
+
 
 
 
