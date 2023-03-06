@@ -3,44 +3,47 @@ const app = require('../server')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const UserModel = require('../models/user');
-// const sessionUser = require('../middelware/auth')
-const router = express.Router()
+const BikeModel = require('../models/bike');
+const BookBikeModel = require('../models/bookbike');
 
+const { verifyAccessToken, verifyRefreshToken ,generateAccessToken,generateRefreshToken} = require('../middelware/auth')
+const router = express.Router()
 
 //Router
 //Register User
 router.post('/register', async (req, res) => {
     try {
-        let image  = req.files.userImage;
-        image.mv(__dirname+'/../uploads/'+image.name);
+        let image = req.files.userImage;
+        image.mv(__dirname + '/../uploads/' + image.name);
         console.log(req.body);
 
         email = req.body.email;
-        const user = await UserModel.findOne({email : email});
-        if(user){
-            return res.status(400).send("User Already Register Found");
+        const user = await UserModel.findOne({ email: email });
+        console.log(user);
+        if (user) {
+            res.status(200).send("User Already Register Found");
         }
-  
-        const userObj = new UserModel({
-            fullName: req.body.fullName,
-            mobileNumber: req.body.mobileNumber,
-            email: req.body.email,
-            status: true,
-            noOfBookings : 0,
-            revenueOnUser : 0,
-            licenceNumber: req.body.licenceNumber,
-            password: req.body.password,
-            confirmPassword: req.body.confirmPassword,
-            isAdmin : false,
-            image: {
-                data: '/uploads/'+image.name,
-                contentType: 'image/png'
-            } 
-        })
-        //Pre function hasingpassword() call before save() 
-        const userSave = await userObj.save();
-        req.session.user = userSave;
-        res.send(userSave);         
+        else {
+            const userObj = new UserModel({
+                fullName: req.body.fullName,
+                mobileNumber: req.body.mobileNumber,
+                email: req.body.email,
+                status: true,
+                noOfBookings: 0,
+                revenueOnUser: 0,
+                licenceNumber: req.body.licenceNumber,
+                password: req.body.password,
+                confirmPassword: req.body.confirmPassword,
+                isAdmin: false,
+                image: {
+                    data: '/uploads/' + image.name,
+                    contentType: 'image/png'
+                }
+            })
+            //Pre function hasingpassword() call before save() 
+            const userSave = await userObj.save();
+            res.send(userSave);
+        }
     }
     catch (error) {
         res.status(400).json({ message: error.message });
@@ -49,9 +52,8 @@ router.post('/register', async (req, res) => {
 
 
 //getAllUser
-router.get('/users',async (req, res) => {
+router.get('/users', async (req, res) => {
     try {
-        console.log(req.cookies);
         const user = await UserModel.find();
         res.send(user);
     }
@@ -75,28 +77,67 @@ router.get('/getPageUsers/:page', async (req, res) => {
 })
 
 
-//ChangeStatus 
-router.post('/changeStatus', async (req, res) => {
+//Generate AccessToken using RefreshToken
+router.post('/refreshToken', async (req, res) => {
     try {
-        const user =  await UserModel.findById(req.body.id)
-        if(user!==null){
-            let changeStatus;
-            if(user.status==true){
-                changeStatus = { status: false }
-            }
-            else{
-                changeStatus = { status: true }
-            }
-            const updateStatusUser = await UserModel.updateOne(user, changeStatus)
-            res.send(user.status);
-        }
-        else{
-            res.send("Empty")
-        }
+        const refreshToken = req.body.refreshToken;
+        const user = await verifyRefreshToken(refreshToken,req,res);
+
+        const accesstoken = await generateAccessToken(user);
+        const refreshtoken = await generateRefreshToken(user);
+        res.send({accesstoken : accesstoken,refreshtoken:refreshtoken}).json();
     }
     catch (error) {
         res.status(400).json({ message: error.message })
     }
 })
+
+
+//Get Available Status Bike
+router.get('/unbookedBike',async (req, res) => {
+    try {
+        const bike = await BikeModel.find({ bRentStatus : "Available" , status : false });
+        console.log(bike);
+        res.send(bike);
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+
+
+//Book Bike 
+router.post('/bookBike',verifyAccessToken, async (req, res) => {
+    try {
+        console.log(req.body);
+        const bike = await BikeModel.findById({ _id: req.body.bId });
+        console.log(bike);
+        if (!bike) {
+            res.status(200).send("Bike Not Found");
+        }
+        else {
+            bike.bRentStatus="Booked";
+            bike.save();
+            formdata = req.body.formData;
+            formdataJsonObj = JSON.parse(formdata);
+            const bookingObj = new BookBikeModel({
+                bikeId : bike.id,
+                userId : req.user.user._id,
+                pickupDate : formdataJsonObj.pickupDate,
+                dropDate :formdataJsonObj.dropDate,
+                chargeperday : bike.chargeperday
+            })
+
+            const bookingSave = await bookingObj.save();
+            res.send(bookingSave);
+        }
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+})
+
+
 
 module.exports = router;

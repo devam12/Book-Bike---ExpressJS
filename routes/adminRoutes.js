@@ -6,10 +6,8 @@ const fs = require('fs')
 const path = require('path')
 const router = express.Router()
 const BikeModel = require('../models/bike');
-// const {sessionUser,generateAccessToken} = require('../middelware/auth')
-
-
-const {verifyToken} = require('../middelware/auth')
+const UserModel = require('../models/user');
+const {verifyAccessToken} = require('../middelware/auth')
 
 //Router
 //addBikeModel
@@ -93,9 +91,8 @@ router.get('/getPageBikes/:page', async (req, res) => {
 })
 
 //ChangeStatus 
-router.post('/changeStatus',verifyToken, async (req, res) => {
+router.post('/changeBikeStatus',verifyAccessToken, async (req, res) => {
     try {
-        console.log(req.body);
         const bike =  await BikeModel.findById(req.body.id)
         if(bike!==null){
             let changeStatus;
@@ -106,7 +103,7 @@ router.post('/changeStatus',verifyToken, async (req, res) => {
                 changeStatus = { status: true }
             }
             const updateStatusBike = await BikeModel.updateOne(bike, changeStatus)
-            res.send(updateStatusBike);
+            res.send(bike.status);
         }
         else{
             res.send("Not Found-------------")
@@ -116,6 +113,35 @@ router.post('/changeStatus',verifyToken, async (req, res) => {
         res.status(400).json({ message: error.message })
     }
 })
+
+
+//ChangeStatus User (Block/Unblock)
+router.post('/changeUserStatus',verifyAccessToken, async (req, res) => {
+    try {
+        const user =  await UserModel.findById(req.body.id)
+        if(user!==null){
+            let changeStatus;
+            if(user.status==true){
+                changeStatus = { status: false }
+            }
+            else{
+                changeStatus = { status: true }
+            }
+            const updateStatusUser = await UserModel.updateOne(user, changeStatus)
+            res.send(user.status);
+        }
+        else{
+            res.send("Empty")
+        }
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+
+
+
 
 //Exports adminRouter
 module.exports = router;
